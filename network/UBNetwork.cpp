@@ -29,7 +29,7 @@ void UBNetwork::startNetwork(quint8 id, quint16 port) {
     m_socket->connectToHost(QHostAddress::LocalHost, port);
 }
 
-void UBNetwork::sendData(quint8 desID, const QByteArray& data) {
+void UBNetwork::sendData(quint32 desID, const QByteArray& data) {
     UBPacket packet;
 
     packet.setSrcID(m_id);
@@ -50,18 +50,19 @@ void UBNetwork::sendData(quint8 desID, const QByteArray& data) {
     m_socket->write(_data);
 }
 
-QByteArray UBNetwork::getData() {
-    QByteArray data;
-
+void UBNetwork::getData(quint32& srcID, QByteArray& data) {
     if (m_receive_buffer.isEmpty())
-        return data;
+        return;
 
     QByteArray* stream = m_receive_buffer.dequeue();
-    data = *stream;
+
+    UBPacket packet;
+    packet.depacketize(*stream);
+
+    srcID = packet.getSrcID();
+    data = packet.getPayload();
 
     delete stream;
-
-    return data;
 }
 
 void UBNetwork::dataSentEvent(qint64 size) {
@@ -99,7 +100,8 @@ void UBNetwork::dataReadyEvent() {
         packet.depacketize(m_data.left(bytes));
 
         if (packet.getDesID() == m_id || packet.getDesID() == BROADCAST_ADDRESS) {
-            QByteArray* data = new QByteArray(packet.getPayload());
+//            QByteArray* data = new QByteArray(packet.getPayload());
+            QByteArray* data = new QByteArray(packet.packetize());
 
             m_receive_buffer.enqueue(data);
             emit dataReady();
