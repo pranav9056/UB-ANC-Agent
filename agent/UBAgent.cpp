@@ -107,24 +107,32 @@ void UBAgent::navModeChangedEvent(int uasID, int mode) {
 }
 
 void UBAgent::dataReadyEvent() {
-    QByteArray data = m_net->getData();
+    quint32 srcID;
+    QByteArray data;
+
+    m_net->getData(srcID, data);
 
     if (!data.count())
         return;
 
-    if (data.count() == 1) {
-        int id = data.data()[0];
-        if (m_uav->getUASID() == (id - 1))
-            m_mission_data.nextID = id;
+    quint8 cmd = data.data()[0];
+    quint8 id = data.data()[1];
 
-        return;
+    switch (cmd) {
+        case BROADCAST_ADDRESS:
+            if (m_uav->getUASID() == (id - 1))
+                m_mission_data.nextID = id;
+
+            break;
+        case MAV_CMD_NAV_TAKEOFF:
+            if (m_uav->getCustomMode() != ApmCopter::GUIDED)
+                m_uav->setMode(MAV_MODE_FLAG_CUSTOM_MODE_ENABLED, ApmCopter::GUIDED);
+
+            if (!m_uav->isArmed())
+                m_uav->armSystem();
+
+            break;
     }
-
-    if (m_uav->getCustomMode() != ApmCopter::GUIDED)
-        m_uav->setMode(MAV_MODE_FLAG_CUSTOM_MODE_ENABLED, ApmCopter::GUIDED);
-
-    if (!m_uav->isArmed())
-        m_uav->armSystem();
 }
 
 double UBAgent::distance(double lat1, double lon1, double alt1, double lat2, double lon2, double alt2) {
@@ -174,7 +182,7 @@ void UBAgent::missionTracker() {
 
 void UBAgent::stageIdle() {
     m_uav->getWaypointManager()->readWaypoints(true);
-    m_net->sendData(BROADCAST_ADDRESS, QByteArray(1, m_uav->getUASID()));
+    m_net->sendData(BROADCAST_ADDRESS, QByteArray(1, BROADCAST_ADDRESS) + QByteArray(1, m_uav->getUASID()));
 }
 
 void UBAgent::stageBegin() {
@@ -244,7 +252,7 @@ void UBAgent::stageMission() {
         m_mission_data.tick++;
 
         if (m_mission_data.nextID)
-            m_net->sendData(m_mission_data.nextID, QByteArray(1, m_uav->getUASID()) + QByteArray(1, MAV_CMD_NAV_TAKEOFF));
+            m_net->sendData(m_mission_data.nextID, QByteArray(1, MAV_CMD_NAV_TAKEOFF) + QByteArray(1, m_uav->getUASID()));
     } else {
         m_mission_stage = STAGE_END;
     }
