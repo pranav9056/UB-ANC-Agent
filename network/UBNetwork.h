@@ -14,7 +14,7 @@ class UBNetwork : public QObject
 public:
     explicit UBNetwork(QObject *parent = 0);
 
-    QByteArray getData();
+    void getData(quint32& srcID, QByteArray& data);
 
 private:
 
@@ -23,7 +23,7 @@ signals:
 
 public slots:
     void startNetwork(quint8 id, quint16 port);
-    void sendData(quint8 desID, const QByteArray& data);
+    void sendData(quint32 desID, const QByteArray& data);
 
 protected slots:
     void connectionEvent();
