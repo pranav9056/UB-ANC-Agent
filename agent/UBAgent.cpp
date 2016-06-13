@@ -19,7 +19,7 @@ UBAgent::UBAgent(QObject *parent) : QObject(parent),
 {
     m_net = new UBNetwork(this);
     m_sensor = new UBVision(this);
-    connect(m_net, SIGNAL(dataReady()), this, SLOT(dataReadyEvent()));
+    connect(m_net, SIGNAL(dataReady(quint32, QByteArray)), this, SLOT(dataReadyEvent(quint32, QByteArray)));
 
     m_timer = new QTimer(this);
     m_timer->setInterval(MISSION_TRACK_RATE);
@@ -106,15 +106,7 @@ void UBAgent::navModeChangedEvent(int uasID, int mode) {
     }
 }
 
-void UBAgent::dataReadyEvent() {
-    quint32 srcID;
-    QByteArray data;
-
-    m_net->getData(srcID, data);
-
-    if (!data.count())
-        return;
-
+void UBAgent::dataReadyEvent(quint32 srcID, QByteArray data) {
     quint8 cmd = data.data()[0];
     quint8 id = data.data()[1];
 
