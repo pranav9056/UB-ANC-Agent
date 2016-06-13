@@ -1,11 +1,9 @@
 #ifndef UBNETWORK_H
 #define UBNETWORK_H
 
-#include <QQueue>
 #include <QObject>
 #include <QByteArray>
 
-class QTimer;
 class QTcpSocket;
 
 class UBNetwork : public QObject
@@ -14,36 +12,23 @@ class UBNetwork : public QObject
 public:
     explicit UBNetwork(QObject *parent = 0);
 
-    void getData(quint32& srcID, QByteArray& data);
-
 private:
 
 signals:
-    void dataReady();
+    void dataReady(quint32 srcID, QByteArray data);
 
 public slots:
     void startNetwork(quint8 id, quint16 port);
     void sendData(quint32 desID, const QByteArray& data);
 
 protected slots:
-    void connectionEvent();
     void dataReadyEvent();
-    void dataSentEvent(qint64);
-
-    void phyTracker();
 
 private:
-    quint8 m_id;
+    quint32 m_id;
 
     QTcpSocket* m_socket;
-
-    qint64 m_size;
     QByteArray m_data;
-
-    QTimer* m_timer;
-
-    QQueue<QByteArray*> m_send_buffer;
-    QQueue<QByteArray*> m_receive_buffer;
 };
 
 #endif // UBNETWORK_H
