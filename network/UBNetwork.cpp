@@ -28,7 +28,7 @@ void UBNetwork::sendData(quint32 desID, const QByteArray& data) {
     packet.setDesID(desID);
     packet.setPayload(data);
 
-    m_socket->write(packet.packetize());
+    m_socket->write(packet.packetize().append(PACKET_END));
 }
 
 void UBNetwork::dataReadyEvent() {
