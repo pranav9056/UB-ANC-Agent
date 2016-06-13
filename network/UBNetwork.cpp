@@ -15,7 +15,7 @@ UBNetwork::UBNetwork(QObject *parent) : QObject(parent),
     connect(m_socket, SIGNAL(readyRead()), this, SLOT(dataReadyEvent()));
 }
 
-void UBNetwork::startNetwork(quint8 id, quint16 port) {
+void UBNetwork::startNetwork(quint32 id, quint16 port) {
     m_id = id;
 
     m_socket->connectToHost(QHostAddress::LocalHost, port);
