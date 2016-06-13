@@ -4,7 +4,6 @@
 #include "config.h"
 #include "QsLog.h"
 
-#include <QTimer>
 #include <QTcpSocket>
 #include <QHostAddress>
 
