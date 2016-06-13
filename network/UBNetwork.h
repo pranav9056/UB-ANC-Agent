@@ -18,7 +18,7 @@ signals:
     void dataReady(quint32 srcID, QByteArray data);
 
 public slots:
-    void startNetwork(quint8 id, quint16 port);
+    void startNetwork(quint32 id, quint16 port);
     void sendData(quint32 desID, const QByteArray& data);
 
 protected slots:
