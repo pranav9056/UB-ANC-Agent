@@ -55,7 +55,7 @@ protected slots:
     void UASCreatedEvent(UASInterface *uav);
     void navModeChangedEvent(int uasID, int mode);
 
-    void dataReadyEvent();
+    void dataReadyEvent(quint32 srcID, QByteArray data);
 
     void missionTracker();
 
