@@ -66,7 +66,6 @@ void UBAgent::UASCreatedEvent(UASInterface* uav) {
     m_sensor->startSensor((SNR_PORT - MAV_PORT) + port);
 
 //    QTimer::singleShot(START_DELAY, m_uav, SLOT(armSystem()));
-    m_mission_data.nextID = 0;
     m_timer->start();
 }
 
@@ -81,12 +80,13 @@ void UBAgent::armedEvent() {
         return;
 
     if (m_uav->getCustomMode() != ApmCopter::GUIDED)
-        m_uav->setMode(MAV_MODE_FLAG_CUSTOM_MODE_ENABLED, ApmCopter::GUIDED);
+//        m_uav->setMode(MAV_MODE_FLAG_CUSTOM_MODE_ENABLED, ApmCopter::GUIDED);
+        return;
 
 //    m_uav->executeCommand(MAV_CMD_MISSION_START, 1, 0, 0, 0, 0, 0, 0, 0, 0);
     m_uav->executeCommand(MAV_CMD_NAV_TAKEOFF, 1, 0, 0, 0, 0, 0, 0, TAKEOFF_ALT, 0);
 
-    m_mission_stage = STAGE_BEGIN;
+    m_mission_stage = STAGE_TAKEOFF;
 }
 
 void UBAgent::disarmedEvent() {
@@ -97,8 +97,8 @@ void UBAgent::navModeChangedEvent(int uasID, int mode) {
     if (uasID != m_uav->getUASID())
         return;
 
-    if (mode == ApmCopter::GUIDED)
-        return;
+//    if (mode == ApmCopter::GUIDED)
+//        return;
 
     if (m_mission_stage != STAGE_IDLE) {
         m_mission_stage = STAGE_IDLE;
@@ -107,24 +107,9 @@ void UBAgent::navModeChangedEvent(int uasID, int mode) {
 }
 
 void UBAgent::dataReadyEvent(quint32 srcID, QByteArray data) {
-    quint8 cmd = data.data()[0];
-    quint8 id = data.data()[1];
-
-    switch (cmd) {
-        case BROADCAST_ADDRESS:
-            if (m_uav->getUASID() == (id - 1))
-                m_mission_data.nextID = id;
-
-            break;
-        case MAV_CMD_NAV_TAKEOFF:
-            if (m_uav->getCustomMode() != ApmCopter::GUIDED)
-                m_uav->setMode(MAV_MODE_FLAG_CUSTOM_MODE_ENABLED, ApmCopter::GUIDED);
-
-            if (!m_uav->isArmed())
-                m_uav->armSystem();
-
-            break;
-    }
+    if(srcID == m_uav->getUASID() - 1)
+        if (!m_uav->isArmed())
+            m_uav->armSystem();
 }
 
 double UBAgent::distance(double lat1, double lon1, double alt1, double lat2, double lon2, double alt2) {
@@ -158,14 +143,14 @@ void UBAgent::missionTracker() {
     case STAGE_IDLE:
         stageIdle();
         break;
-    case STAGE_BEGIN:
-        stageBegin();
+    case STAGE_TAKEOFF:
+        stageTakeoff();
         break;
     case STAGE_MISSION:
         stageMission();
         break;
-    case STAGE_END:
-        stageEnd();
+    case STAGE_LAND:
+        stageLand();
         break;
     default:
         break;
@@ -173,11 +158,11 @@ void UBAgent::missionTracker() {
 }
 
 void UBAgent::stageIdle() {
-    m_uav->getWaypointManager()->readWaypoints(true);
-    m_net->sendData(BROADCAST_ADDRESS, QByteArray(1, BROADCAST_ADDRESS) + QByteArray(1, m_uav->getUASID()));
+//    m_uav->getWaypointManager()->readWaypoints(true);
+//    m_net->sendData(BROADCAST_ADDRESS, QByteArray(1, BROADCAST_ADDRESS) + QByteArray(1, m_uav->getUASID()));
 }
 
-void UBAgent::stageBegin() {
+void UBAgent::stageTakeoff() {
     if (inPointZone(m_uav->getLatitude(), m_uav->getLongitude(), TAKEOFF_ALT)) {
         m_mission_data.reset();
         m_mission_stage = STAGE_MISSION;
@@ -186,7 +171,7 @@ void UBAgent::stageBegin() {
     }
 }
 
-void UBAgent::stageEnd() {
+void UBAgent::stageLand() {
 //    m_uav->setMode(MAV_MODE_FLAG_CUSTOM_MODE_ENABLED, ApmCopter::RTL);
     m_uav->land();
 
@@ -242,10 +227,8 @@ void UBAgent::stageMission() {
 
     if (m_mission_data.tick < 20) {
         m_mission_data.tick++;
-
-        if (m_mission_data.nextID)
-            m_net->sendData(m_mission_data.nextID, QByteArray(1, MAV_CMD_NAV_TAKEOFF) + QByteArray(1, m_uav->getUASID()));
+        m_net->sendData(m_uav->getUASID() + 1, QByteArray(1, MAV_CMD_NAV_TAKEOFF));
     } else {
-        m_mission_stage = STAGE_END;
+        m_mission_stage = STAGE_LAND;
     }
 }
