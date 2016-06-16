@@ -8,8 +8,8 @@ UBPacket::UBPacket(QObject *parent) : QObject(parent),
 }
 
 QByteArray UBPacket::packetize(void) {
-    QByteArray src(((char*)(&m_srcID)), sizeof(m_srcID));
-    QByteArray des(((char*)(&m_desID)), sizeof(m_desID));
+    QByteArray src(((char*)(&m_srcID)), sizeof(quint32));
+    QByteArray des(((char*)(&m_desID)), sizeof(quint32));
 
     QByteArray payload(m_payload);
 
@@ -17,10 +17,8 @@ QByteArray UBPacket::packetize(void) {
 }
 
 void UBPacket::depacketize(const QByteArray& packet) {
-    const char* data = packet.data();
+    m_srcID = *((quint32*)(packet.mid(0, sizeof(quint32)).data()));
+    m_desID = *((quint32*)(packet.mid(0 + sizeof(quint32), sizeof(quint32)).data()));
 
-    m_srcID = *((quint32*)(data));
-    m_desID = *((quint32*)(data + sizeof(quint32)));
-
-    m_payload = QByteArray((data + 2 * sizeof(quint32)), packet.size() - (2 * sizeof(quint32)));
+    m_payload = packet.mid(0 + sizeof(quint32) + sizeof(quint32));
 }
