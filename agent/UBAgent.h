@@ -23,16 +23,14 @@ public slots:
 private:
     enum EMissionStage {
         STAGE_IDLE,
-        STAGE_BEGIN,
+        STAGE_TAKEOFF,
         STAGE_MISSION,
-        STAGE_END,
+        STAGE_LAND,
     } m_mission_stage;
 
     struct SMissionData {
         int stage;
         int tick;
-
-        int nextID;
 
         void reset() {
             stage = 0;
@@ -42,9 +40,9 @@ private:
 
 private:
     void stageIdle();
-    void stageBegin();
+    void stageTakeoff();
     void stageMission();
-    void stageEnd();
+    void stageLand();
 
 signals:
 
