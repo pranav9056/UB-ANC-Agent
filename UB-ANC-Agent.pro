@@ -23,16 +23,21 @@ INCLUDEPATH += \
     agent \
     network \
     sensor \
+    sensor/power \
 
 HEADERS += \
     agent/UBAgent.h \
     network/UBNetwork.h \
-    network/UBPacket.h \
+    network/UBNetPacket.h \
+    sensor/power/UBPWRPacket.h \
     sensor/UBVision.h \
     config.h \
+    sensor/power/UBPower.h
 
 SOURCES += \
     agent/UBAgent.cpp \
     network/UBNetwork.cpp \
-    network/UBPacket.cpp \
+    network/UBNetPacket.cpp \
+    sensor/power/UBPWRPacket.cpp \
     sensor/UBVision.cpp \
+    sensor/power/UBPower.cpp

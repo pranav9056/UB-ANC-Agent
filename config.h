@@ -7,6 +7,7 @@
 #define MAV_PORT 5760
 #define PHY_PORT 6760
 #define SNR_PORT 7760
+#define PWR_PORT 8760
 
 #define AGENT_FILE "./agent"
 #define FIRMWARE_FILE "./firmware"

@@ -1,5 +1,5 @@
 #include "UBNetwork.h"
-#include "UBPacket.h"
+#include "UBNetPacket.h"
 
 #include "config.h"
 #include "QsLog.h"
@@ -22,7 +22,7 @@ void UBNetwork::startNetwork(quint32 id, quint16 port) {
 }
 
 void UBNetwork::sendData(quint32 desID, const QByteArray& data) {
-    UBPacket packet;
+    UBNetPacket packet;
 
     packet.setSrcID(m_id);
     packet.setDesID(desID);
@@ -37,7 +37,7 @@ void UBNetwork::dataReadyEvent() {
     while (m_data.contains(PACKET_END)) {
         int bytes = m_data.indexOf(PACKET_END);
 
-        UBPacket packet;
+        UBNetPacket packet;
         packet.depacketize(m_data.left(bytes));
 
         if (packet.getDesID() == m_id || packet.getDesID() == BROADCAST_ADDRESS) {

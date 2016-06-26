@@ -1,13 +1,13 @@
-#ifndef UBPACKET_H
-#define UBPACKET_H
+#ifndef UBNETPACKET_H
+#define UBNETPACKET_H
 
 #include <QObject>
 
-class UBPacket : public QObject
+class UBNetPacket : public QObject
 {
     Q_OBJECT
 public:
-    explicit UBPacket(QObject *parent = 0);
+    explicit UBNetPacket(QObject *parent = 0);
 
 signals:
 
@@ -31,4 +31,4 @@ public:
     void depacketize(const QByteArray &packet);
 };
 
-#endif // UBPACKET_H
+#endif // UBNETPACKET_H

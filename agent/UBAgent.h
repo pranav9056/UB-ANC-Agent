@@ -10,6 +10,7 @@ class ArduPilotMegaMAV;
 
 class UBNetwork;
 class UBVision;
+class UBPower;
 
 class UBAgent : public QObject
 {
@@ -63,6 +64,7 @@ protected:
 
     UBNetwork* m_net;
     UBVision* m_sensor;
+    UBPower* m_power;
 
 protected:
     double distance(double lat1, double lon1, double alt1, double lat2, double lon2, double alt2);

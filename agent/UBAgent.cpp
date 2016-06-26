@@ -5,6 +5,7 @@
 
 #include "UBNetwork.h"
 #include "UBVision.h"
+#include "UBPower.h"
 
 #include "UASManager.h"
 #include "LinkManager.h"
@@ -18,6 +19,7 @@ UBAgent::UBAgent(QObject *parent) : QObject(parent),
     m_mission_stage(STAGE_IDLE)
 {
     m_net = new UBNetwork(this);
+    m_power = new UBPower(this);
     m_sensor = new UBVision(this);
     connect(m_net, SIGNAL(dataReady(quint32, QByteArray)), this, SLOT(dataReadyEvent(quint32, QByteArray)));
 
@@ -63,6 +65,7 @@ void UBAgent::UASCreatedEvent(UASInterface* uav) {
         port = QCoreApplication::arguments().at(idx + 1).toInt();
 
     m_net->startNetwork(m_uav->getUASID(), (PHY_PORT - MAV_PORT) + port);
+    m_power->startPWRSensor((PWR_PORT - MAV_PORT) + port);
     m_sensor->startSensor((SNR_PORT - MAV_PORT) + port);
 
 //    QTimer::singleShot(START_DELAY, m_uav, SLOT(armSystem()));
@@ -82,6 +85,8 @@ void UBAgent::armedEvent() {
     if (m_uav->getCustomMode() != ApmCopter::GUIDED)
 //        m_uav->setMode(MAV_MODE_FLAG_CUSTOM_MODE_ENABLED, ApmCopter::GUIDED);
         return;
+
+    m_power->sendData(UBPower::PWR_START, QByteArray());
 
 //    m_uav->executeCommand(MAV_CMD_MISSION_START, 1, 0, 0, 0, 0, 0, 0, 0, 0);
     m_uav->executeCommand(MAV_CMD_NAV_TAKEOFF, 1, 0, 0, 0, 0, 0, 0, TAKEOFF_ALT, 0);
@@ -173,6 +178,8 @@ void UBAgent::stageTakeoff() {
 
 void UBAgent::stageLand() {
 //    m_uav->setMode(MAV_MODE_FLAG_CUSTOM_MODE_ENABLED, ApmCopter::RTL);
+    m_power->sendData(UBPower::PWR_STOP, QByteArray());
+
     m_uav->land();
 
     m_mission_stage = STAGE_IDLE;
