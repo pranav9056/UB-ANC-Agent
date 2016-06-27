@@ -17,8 +17,8 @@ private:
 public:
     enum {
         PWR_START,
-        PWR_EVENT,
         PWR_STOP,
+        PWR_EVENT,
     };
 
 signals:
