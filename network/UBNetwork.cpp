@@ -40,7 +40,7 @@ void UBNetwork::dataReadyEvent() {
         UBNetPacket packet;
         packet.depacketize(m_data.left(bytes));
 
-        if (packet.getDesID() == m_id || packet.getDesID() == BROADCAST_ADDRESS) {
+        if (packet.getDesID() == m_id || packet.getDesID() == BROADCAST_ID) {
             emit dataReady(packet.getSrcID(), packet.getPayload());
 
             QLOG_INFO() << "Packet Received | From " << packet.getSrcID() << " to " << packet.getDesID() << " | Size: " << packet.getPayload().size();
