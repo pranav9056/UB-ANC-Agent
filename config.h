@@ -18,8 +18,10 @@
 #define OBJECT_TRACK_RATE 1000
 #define SERVER_TRACK_RATE 1000
 
+#define PXY_PORT 45760
+
 #define PACKET_END "\r\r\n\n"
-#define BROADCAST_ADDRESS 0
+#define BROADCAST_ID 255
 
 //#define PHY_PORT 52001
 #define PHY_TRACK_RATE 1000
