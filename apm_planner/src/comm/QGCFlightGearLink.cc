@@ -43,7 +43,7 @@ This file is part of the QGROUNDCONTROL project
 
 #include <QtGui/QMatrix3x3>
 #include <QtGui/QVector3D>
-
+#include <math.h>
 #include "UAS.h"
 #include "UASManager.h"
 
@@ -177,7 +177,7 @@ void QGCFlightGearLink::updateControls(uint64_t time, float rollAilerons, float 
     Q_UNUSED(systemMode);
     Q_UNUSED(navMode);
 
-    if(!isnan(rollAilerons) && !isnan(pitchElevator) && !isnan(yawRudder) && !isnan(throttle))
+    if(!std::isnan(rollAilerons) && !std::isnan(pitchElevator) && !std::isnan(yawRudder) && !std::isnan(throttle))
     {
         QString state("%1\t%2\t%3\t%4\t%5\n");
         state = state.arg(rollAilerons).arg(pitchElevator).arg(yawRudder).arg(true).arg(throttle);
@@ -185,7 +185,7 @@ void QGCFlightGearLink::updateControls(uint64_t time, float rollAilerons, float 
     }
     else
     {
-        QLOG_WARN() << "HIL: Got NaN values from the hardware: isnan output: roll: " << isnan(rollAilerons) << ", pitch: " << isnan(pitchElevator) << ", yaw: " << isnan(yawRudder) << ", throttle: " << isnan(throttle);
+        QLOG_WARN() << "HIL: Got NaN values from the hardware: std::isnan output: roll: " << std::isnan(rollAilerons) << ", pitch: " << std::isnan(pitchElevator) << ", yaw: " << std::isnan(yawRudder) << ", throttle: " << std::isnan(throttle);
     }
     //QLOG_INFO() << "Updated controls" << state;
 }

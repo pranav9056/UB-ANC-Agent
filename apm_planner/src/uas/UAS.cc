@@ -730,7 +730,7 @@ void UAS::receiveMessage(LinkInterface* link, mavlink_message_t message)
             }
             setAltitudeAMSL(hud.alt);
             setGroundSpeed(hud.groundspeed);
-            if (!isnan(hud.airspeed))
+            if (!std::isnan(hud.airspeed))
                 setAirSpeed(hud.airspeed);
 
             speedZ = -hud.climb;
@@ -875,7 +875,7 @@ void UAS::receiveMessage(LinkInterface* link, mavlink_message_t message)
                 
                     double vel = pos.vel/100.0;
                     // Smaller than threshold and not NaN
-                    if ((vel < 1000000) && !isnan(vel) && !isinf(vel))
+                    if ((vel < 1000000) && !std::isnan(vel) && !std::isinf(vel))
                     {
                         setGroundSpeed(vel);
                         emit speedChanged(this, groundSpeed, airSpeed, time);

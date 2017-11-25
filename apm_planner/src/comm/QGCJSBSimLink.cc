@@ -169,7 +169,7 @@ void QGCJSBSimLink::updateControls(uint64_t time, float rollAilerons, float pitc
     Q_UNUSED(systemMode);
     Q_UNUSED(navMode);
 
-    if(!isnan(rollAilerons) && !isnan(pitchElevator) && !isnan(yawRudder) && !isnan(throttle))
+    if(!std::isnan(rollAilerons) && !std::isnan(pitchElevator) && !std::isnan(yawRudder) && !std::isnan(throttle))
     {
         QString state("%1\t%2\t%3\t%4\t%5\n");
         state = state.arg(rollAilerons).arg(pitchElevator).arg(yawRudder).arg(true).arg(throttle);
@@ -177,7 +177,7 @@ void QGCJSBSimLink::updateControls(uint64_t time, float rollAilerons, float pitc
     }
     else
     {
-        QLOG_INFO() << "HIL: Got NaN values from the hardware: isnan output: roll: " << isnan(rollAilerons) << ", pitch: " << isnan(pitchElevator) << ", yaw: " << isnan(yawRudder) << ", throttle: " << isnan(throttle);
+        QLOG_INFO() << "HIL: Got NaN values from the hardware: std::isnan output: roll: " << std::isnan(rollAilerons) << ", pitch: " << std::isnan(pitchElevator) << ", yaw: " << std::isnan(yawRudder) << ", throttle: " << std::isnan(throttle);
     }
     //QLOG_TRACE() << "Updated controls" << state;
 }

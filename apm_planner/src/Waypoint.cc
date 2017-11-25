@@ -148,7 +148,7 @@ void Waypoint::setId(quint16 id)
 
 void Waypoint::setX(double x)
 {
-    if (!isinf(x) && !isnan(x) && ((this->frame == MAV_FRAME_LOCAL_NED) || (this->frame == MAV_FRAME_LOCAL_ENU)))
+    if (!std::isinf(x) && !std::isnan(x) && ((this->frame == MAV_FRAME_LOCAL_NED) || (this->frame == MAV_FRAME_LOCAL_ENU)))
     {
         this->x = x;
         emit changed(this);
@@ -157,7 +157,7 @@ void Waypoint::setX(double x)
 
 void Waypoint::setY(double y)
 {
-    if (!isinf(y) && !isnan(y) && ((this->frame == MAV_FRAME_LOCAL_NED) || (this->frame == MAV_FRAME_LOCAL_ENU)))
+    if (!std::isinf(y) && !std::isnan(y) && ((this->frame == MAV_FRAME_LOCAL_NED) || (this->frame == MAV_FRAME_LOCAL_ENU)))
     {
         this->y = y;
         emit changed(this);
@@ -166,7 +166,7 @@ void Waypoint::setY(double y)
 
 void Waypoint::setZ(double z)
 {
-    if (!isinf(z) && !isnan(z) && ((this->frame == MAV_FRAME_LOCAL_NED) || (this->frame == MAV_FRAME_LOCAL_ENU)))
+    if (!std::isinf(z) && !std::isnan(z) && ((this->frame == MAV_FRAME_LOCAL_NED) || (this->frame == MAV_FRAME_LOCAL_ENU)))
     {
         this->z = z;
         emit changed(this);
