@@ -43,7 +43,6 @@ This file is part of the QGROUNDCONTROL project
 
 #include <QtGui/QMatrix3x3>
 #include <QtGui/QVector3D>
-#include <math.h>
 #include "UAS.h"
 #include "UASManager.h"
 
