@@ -11,6 +11,7 @@ class ArduPilotMegaMAV;
 class UBNetwork;
 class UBVision;
 class UBPower;
+class UBConnectivity;
 
 class UBAgent : public QObject
 {
@@ -57,6 +58,7 @@ protected slots:
     void dataReadyEvent(quint32 srcID, QByteArray data);
 
     void missionTracker();
+    void setDestination(double lat, double lon);
 
 protected:
     QTimer* m_timer;
@@ -65,6 +67,7 @@ protected:
     UBNetwork* m_net;
     UBVision* m_sensor;
     UBPower* m_power;
+    UBConnectivity* m_connectivity;
 
 protected:
     double distance(double lat1, double lon1, double alt1, double lat2, double lon2, double alt2);

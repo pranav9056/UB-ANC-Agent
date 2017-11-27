@@ -6,12 +6,12 @@
 #include "UBNetwork.h"
 #include "UBVision.h"
 #include "UBPower.h"
+#include "UBConnectivity.h"
 
 #include "UASManager.h"
 #include "LinkManager.h"
 #include "ArduPilotMegaMAV.h"
 #include "LinkManagerFactory.h"
-
 #include "mercatorprojection.h"
 
 UBAgent::UBAgent(QObject *parent) : QObject(parent),
@@ -26,6 +26,7 @@ UBAgent::UBAgent(QObject *parent) : QObject(parent),
     m_timer = new QTimer(this);
     m_timer->setInterval(MISSION_TRACK_RATE);
     connect(m_timer, SIGNAL(timeout()), this, SLOT(missionTracker()));
+    m_connectivity = new UBConnectivity(this);
 }
 
 void UBAgent::startAgent() {
@@ -36,11 +37,26 @@ void UBAgent::startAgent() {
         port = QCoreApplication::arguments().at(idx + 1).toInt();
 
     int link = 0;
-//    link = LinkManagerFactory::addSerialConnection(SERIAL_PORT, BAUD_RATE);
-    link = LinkManagerFactory::addTcpConnection(QHostAddress::LocalHost, "", port, false);
+
+    // Setup TCP if running the Emulator or Serial for running on hardware
+    if(RUN_EMULATOR){
+        link = LinkManagerFactory::addTcpConnection(QHostAddress::LocalHost, "", port, false);
+    }
+    else{
+        link = LinkManagerFactory::addSerialConnection(SERIAL_PORT, BAUD_RATE);
+    }
 
     LinkManager::instance()->connectLink(link);
     connect(UASManager::instance(), SIGNAL(UASCreated(UASInterface*)), this, SLOT(UASCreatedEvent(UASInterface*)));
+}
+
+void UBAgent::setDestination(double lat,double lon){
+    Waypoint wp;
+    wp.setFrame(MAV_FRAME_GLOBAL_RELATIVE_ALT);
+    wp.setLatitude(lat);
+    wp.setLongitude(lon);
+    wp.setAltitude(m_uav->getAltitudeRelative());
+    m_uav->getWaypointManager()->goToWaypoint(&wp);
 }
 
 void UBAgent::UASCreatedEvent(UASInterface* uav) {
