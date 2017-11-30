@@ -13,7 +13,6 @@
 #include "ArduPilotMegaMAV.h"
 #include "LinkManagerFactory.h"
 #include "mercatorprojection.h"
-
 UBAgent::UBAgent(QObject *parent) : QObject(parent),
     m_uav(NULL),
     m_mission_stage(STAGE_IDLE)
@@ -31,7 +30,7 @@ UBAgent::UBAgent(QObject *parent) : QObject(parent),
 
 void UBAgent::startAgent() {
     int port = MAV_PORT;
-
+    getWayPointList();
     int idx = QCoreApplication::arguments().indexOf("--port");
     if (idx > 0)
         port = QCoreApplication::arguments().at(idx + 1).toInt();
@@ -57,6 +56,12 @@ void UBAgent::setDestination(double lat,double lon){
     wp.setLongitude(lon);
     wp.setAltitude(m_uav->getAltitudeRelative());
     m_uav->getWaypointManager()->goToWaypoint(&wp);
+}
+
+void UBAgent::getWayPointList() {
+    m_mission_data.wpm = new UASWaypointManager();
+    m_mission_data.wpm->loadWaypoints("mission.txt");
+    return;
 }
 
 void UBAgent::UASCreatedEvent(UASInterface* uav) {
@@ -187,7 +192,6 @@ void UBAgent::stageTakeoff() {
     if (inPointZone(m_uav->getLatitude(), m_uav->getLongitude(), TAKEOFF_ALT)) {
         m_mission_data.reset();
         m_mission_stage = STAGE_MISSION;
-
         QLOG_INFO() << "Mission Begin";
     }
 }
@@ -203,54 +207,75 @@ void UBAgent::stageLand() {
 }
 
 void UBAgent::stageMission() {
-    static double lat, lon;
-
-    if (m_mission_data.stage == 0) {
-        m_mission_data.stage++;
-
-        projections::MercatorProjection proj;
-
-        double res = proj.GetGroundResolution(GND_RES, m_uav->getLatitude());
-        core::Point pix = proj.FromLatLngToPixel(m_uav->getLatitude(), m_uav->getLongitude(), GND_RES);
-        internals::PointLatLng pll = proj.FromPixelToLatLng(pix.X() + 10 / res, pix.Y(), GND_RES);
-
-        lat = pll.Lat();
-        lon = pll.Lng();
-
-        Waypoint wp;
-        wp.setFrame(MAV_FRAME_GLOBAL_RELATIVE_ALT);
-//        wp.setFrame(MAV_FRAME_GLOBAL_LOCAL_NED);
-//        wp.setAction(MAV_CMD_NAV_WAYPOINT);
-//        wp.setParam1(0);
-//        wp.setParam2(POINT_ZONE);
-//        wp.setParam3(POINT_ZONE);
-//        wp.setParam4(0);
-//        wp.setParam5(m_uav->getLatitude());
-//        wp.setParam6(m_uav->getLongitude());
-//        wp.setParam7(TAKEOFF_ALT);
-//        wp.setParam5(m_uav->getLocalX() + 10);
-//        wp.setParam6(m_uav->getLocalY());
-//        wp.setParam7(m_uav->getLocalZ());
-        wp.setLatitude(lat);
-        wp.setLongitude(lon);
-        wp.setAltitude(m_uav->getAltitudeRelative());
-
-        m_uav->getWaypointManager()->goToWaypoint(&wp);
-
+    //static double lat, lon;
+    static const Waypoint* temp;
+    int idx = m_mission_data.wpm->getWaypointEditableList().size();
+    static int nextPoint = 1;
+    if(m_mission_data.tick==0){
+        m_net->sendData(m_uav->getUASID() + 1, QByteArray(1, MAV_CMD_NAV_TAKEOFF));
+        m_mission_data.tick++;
         return;
     }
-
-    if (m_mission_data.stage == 1) {
-        if (inPointZone(lat, lon, m_uav->getAltitudeRelative())) {
-            m_mission_data.stage++;
+    if(m_mission_data.stage<idx){
+        if(nextPoint)
+        {
+            temp = m_mission_data.wpm->getWaypoint(m_mission_data.stage);
+            setDestination(temp->getLatitude(),temp->getLongitude());
+            nextPoint=0;
         }
-
+        else{
+            if(inPointZone(temp->getLatitude(),temp->getLongitude(),m_uav->getAltitudeRelative())){
+                m_mission_data.stage+=1;
+                nextPoint=1;
+            }
+        }
         return;
     }
+//    if (m_mission_data.stage == 0) {
+//        m_mission_data.stage++;
+
+//        projections::MercatorProjection proj;
+
+//        double res = proj.GetGroundResolution(GND_RES, m_uav->getLatitude());
+//        core::Point pix = proj.FromLatLngToPixel(m_uav->getLatitude(), m_uav->getLongitude(), GND_RES);
+//        internals::PointLatLng pll = proj.FromPixelToLatLng(pix.X() + 10 / res, pix.Y(), GND_RES);
+
+//        lat = pll.Lat();
+//        lon = pll.Lng();
+
+//        Waypoint wp;
+//        wp.setFrame(MAV_FRAME_GLOBAL_RELATIVE_ALT);
+// //        wp.setFrame(MAV_FRAME_GLOBAL_LOCAL_NED);
+// //        wp.setAction(MAV_CMD_NAV_WAYPOINT);
+// //        wp.setParam1(0);
+// //        wp.setParam2(POINT_ZONE);
+// //        wp.setParam3(POINT_ZONE);
+// //        wp.setParam4(0);
+// //        wp.setParam5(m_uav->getLatitude());
+// //        wp.setParam6(m_uav->getLongitude());
+// //        wp.setParam7(TAKEOFF_ALT);
+// //        wp.setParam5(m_uav->getLocalX() + 10);
+// //        wp.setParam6(m_uav->getLocalY());
+// //        wp.setParam7(m_uav->getLocalZ());
+//        wp.setLatitude(lat);
+//        wp.setLongitude(lon);
+//        wp.setAltitude(m_uav->getAltitudeRelative());
+
+//        m_uav->getWaypointManager()->goToWaypoint(&wp);
+
+//        return;
+//    }
+
+//    if (m_mission_data.stage == 1) {
+//        if (inPointZone(lat, lon, m_uav->getAltitudeRelative())) {
+//            m_mission_data.stage++;
+//        }
+
+//        return;
+//    }
 
     if (m_mission_data.tick < 20) {
         m_mission_data.tick++;
-        m_net->sendData(m_uav->getUASID() + 1, QByteArray(1, MAV_CMD_NAV_TAKEOFF));
     } else {
         m_mission_stage = STAGE_LAND;
     }

@@ -12,6 +12,7 @@ class UBNetwork;
 class UBVision;
 class UBPower;
 class UBConnectivity;
+class UASWaypointManager;
 
 class UBAgent : public QObject
 {
@@ -33,7 +34,8 @@ private:
     struct SMissionData {
         int stage;
         int tick;
-
+        UASWaypointManager * wpm;
+        //UASWaypointManager * wpm;
         void reset() {
             stage = 0;
             tick = 0;
@@ -59,6 +61,7 @@ protected slots:
 
     void missionTracker();
     void setDestination(double lat, double lon);
+    void getWayPointList();
 
 protected:
     QTimer* m_timer;
