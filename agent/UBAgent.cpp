@@ -2,7 +2,7 @@
 
 #include "config.h"
 #include "QsLog.h"
-
+#include <QThread>
 #include "UBNetwork.h"
 #include "UBVision.h"
 #include "UBPower.h"
@@ -25,8 +25,20 @@ UBAgent::UBAgent(QObject *parent) : QObject(parent),
     m_timer = new QTimer(this);
     m_timer->setInterval(MISSION_TRACK_RATE);
     connect(m_timer, SIGNAL(timeout()), this, SLOT(missionTracker()));
+
+    //connectivity thread
     m_connectivity = new UBConnectivity(this);
+    m_connectivity->moveToThread(&connectivityThread);
+    connect(&connectivityThread, &QThread::finished, m_connectivity, &QObject::deleteLater);
+    connect(this, SIGNAL(goToNextPoint(int)), m_connectivity,SLOT(collectionPhase(int)));
+    //connect(worker, &Worker::resultReady, this, &Controller::handleResults);
+
+    connect(m_connectivity,SIGNAL(broadcastLocation(quint32,QByteArray)),m_net,SLOT(sendData(quint32,QByteArray))); // To broadcast location
+    connect(m_net,SIGNAL(dataReady(quint32,QByteArray)), m_connectivity, SLOT(getNeighbors(quint32,QByteArray)),Qt::QueuedConnection);
+    connectivityThread.start();
+
 }
+
 
 void UBAgent::startAgent() {
     int port = MAV_PORT;
@@ -47,6 +59,7 @@ void UBAgent::startAgent() {
 
     LinkManager::instance()->connectLink(link);
     connect(UASManager::instance(), SIGNAL(UASCreated(UASInterface*)), this, SLOT(UASCreatedEvent(UASInterface*)));
+    //m_connectivity->start();
 }
 
 void UBAgent::setDestination(double lat,double lon){
@@ -63,6 +76,7 @@ void UBAgent::getWayPointList() {
     m_mission_data.wpm->loadWaypoints("mission.txt");
     return;
 }
+
 
 void UBAgent::UASCreatedEvent(UASInterface* uav) {
     if (m_uav)
@@ -111,6 +125,7 @@ void UBAgent::armedEvent() {
 
 //    m_uav->executeCommand(MAV_CMD_MISSION_START, 1, 0, 0, 0, 0, 0, 0, 0, 0);
     m_uav->executeCommand(MAV_CMD_NAV_TAKEOFF, 1, 0, 0, 0, 0, 0, 0, TAKEOFF_ALT, 0);
+    m_net->sendData(m_uav->getUASID() + 1, QByteArray(1, MAV_CMD_NAV_TAKEOFF));
 
     m_mission_stage = STAGE_TAKEOFF;
 }
@@ -136,6 +151,7 @@ void UBAgent::dataReadyEvent(quint32 srcID, QByteArray data) {
     if(srcID == m_uav->getUASID() - 1)
         if (!m_uav->isArmed())
             m_uav->armSystem();
+    //emit neigh(srcID,data);
 }
 
 double UBAgent::distance(double lat1, double lon1, double alt1, double lat2, double lon2, double alt2) {
@@ -211,14 +227,12 @@ void UBAgent::stageMission() {
     static const Waypoint* temp;
     int idx = m_mission_data.wpm->getWaypointEditableList().size();
     static int nextPoint = 1;
-    if(m_mission_data.tick==0){
-        m_net->sendData(m_uav->getUASID() + 1, QByteArray(1, MAV_CMD_NAV_TAKEOFF));
-        m_mission_data.tick++;
-        return;
-    }
+
     if(m_mission_data.stage<idx){
         if(nextPoint)
         {
+            emit(goToNextPoint(m_mission_data.stage));
+            QThread::currentThread()->msleep(500);
             temp = m_mission_data.wpm->getWaypoint(m_mission_data.stage);
             setDestination(temp->getLatitude(),temp->getLongitude());
             nextPoint=0;

@@ -2,9 +2,9 @@
 #define UBAGENT_H
 
 #include <QObject>
-
+#include<QThread>
 class QTimer;
-
+class QThread;
 class UASInterface;
 class ArduPilotMegaMAV;
 
@@ -17,8 +17,14 @@ class UASWaypointManager;
 class UBAgent : public QObject
 {
     Q_OBJECT
+    QThread connectivityThread;
 public:
+    friend class UBConnectivity;
     explicit UBAgent(QObject *parent = 0);
+    ~UBAgent(){
+        connectivityThread.quit();
+        connectivityThread.wait();
+    }
 
 public slots:
     void startAgent();
@@ -49,6 +55,8 @@ private:
     void stageLand();
 
 signals:
+    void goToNextPoint(int idx);
+    void neigh(quint32 srcID, QByteArray data);
 
 protected slots:
     void armedEvent();
@@ -63,10 +71,10 @@ protected slots:
     void setDestination(double lat, double lon);
     void getWayPointList();
 
+
 protected:
     QTimer* m_timer;
     ArduPilotMegaMAV* m_uav;
-
     UBNetwork* m_net;
     UBVision* m_sensor;
     UBPower* m_power;

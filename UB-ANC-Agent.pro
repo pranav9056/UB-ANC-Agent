@@ -33,7 +33,8 @@ HEADERS += \
     sensor/UBVision.h \
     config.h \
     sensor/power/UBPower.h \
-    network/UBConnectivity.h
+    network/UBConnectivity.h \
+    agent/location.h
 
 SOURCES += \
     agent/UBAgent.cpp \
@@ -42,4 +43,5 @@ SOURCES += \
     sensor/power/UBPWRPacket.cpp \
     sensor/UBVision.cpp \
     sensor/power/UBPower.cpp \
-    network/UBConnectivity.cpp
+    network/UBConnectivity.cpp \
+    agent/location.cpp
