@@ -31,6 +31,7 @@ UBAgent::UBAgent(QObject *parent) : QObject(parent),
     m_connectivity->moveToThread(&connectivityThread);
     connect(&connectivityThread, &QThread::finished, m_connectivity, &QObject::deleteLater);
     connect(this, SIGNAL(goToNextPoint(int)), m_connectivity,SLOT(collectionPhase(int)));
+    connect(this,SIGNAL(proposalBegin(int)),m_connectivity,SLOT(proposalPhase(int)));
     //connect(worker, &Worker::resultReady, this, &Controller::handleResults);
 
     connect(m_connectivity,SIGNAL(broadcastLocation(quint32,QByteArray)),m_net,SLOT(sendData(quint32,QByteArray))); // To broadcast location
@@ -227,15 +228,28 @@ void UBAgent::stageMission() {
     static const Waypoint* temp;
     int idx = m_mission_data.wpm->getWaypointEditableList().size();
     static int nextPoint = 1;
-
+    static int wait = 0;
+    static int nextPointFlag = 1;
     if(m_mission_data.stage<idx){
         if(nextPoint)
         {
-            emit(goToNextPoint(m_mission_data.stage));
-            QThread::currentThread()->msleep(500);
+            if (nextPointFlag){
+                emit(goToNextPoint(m_mission_data.stage));
+                nextPointFlag = 0;
+            }
+            if(wait<5){
+                wait++;
+                return;
+            }
+            //QThread::currentThread()->msleep(10000);
+            //QLOG_FATAL()<<"after sleep "<<m_uav->getUASID();
+            emit(proposalBegin(m_mission_data.stage));
+            QThread::currentThread()->msleep(1500);
             temp = m_mission_data.wpm->getWaypoint(m_mission_data.stage);
             setDestination(temp->getLatitude(),temp->getLongitude());
             nextPoint=0;
+            nextPointFlag = 1;
+            wait = 0;
         }
         else{
             if(inPointZone(temp->getLatitude(),temp->getLongitude(),m_uav->getAltitudeRelative())){

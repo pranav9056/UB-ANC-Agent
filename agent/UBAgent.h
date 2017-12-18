@@ -56,8 +56,7 @@ private:
 
 signals:
     void goToNextPoint(int idx);
-    void neigh(quint32 srcID, QByteArray data);
-
+    void proposalBegin(int idx);
 protected slots:
     void armedEvent();
     void disarmedEvent();

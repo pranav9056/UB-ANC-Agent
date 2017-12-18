@@ -18,7 +18,7 @@ signals:
 public slots:
     void collectionPhase(int idx);
     void getNeighbors(quint32,QByteArray);
-    void proposalPhase();
+    void proposalPhase(int idx);
     void adjustmentPhase();
 private:
 protected:
