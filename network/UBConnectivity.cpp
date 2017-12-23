@@ -217,6 +217,9 @@ void UBConnectivity::adjustmentPhase(int idx) {
     this->agent->m_mission_data.wpm->addWaypointEditable(&wp);
     int seq = this->agent->m_mission_data.wpm->getWaypointEditableList().size();
     this->agent->m_mission_data.wpm->moveWaypoint(seq-1,idx);
+    neighbors.clear();
+    proposals.clear();
+    filter.clear();
 
 
 }
