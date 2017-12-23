@@ -11,6 +11,8 @@
 #include <QSet>
 #include <cmath>
 #include <QMutableHashIterator>
+#include "Waypoint.h"
+
 
 double normD(core::Point a,core::Point b){
     return sqrt(pow(a.X()-b.X(),2)+pow(a.Y()-b.Y(),2));
@@ -182,9 +184,39 @@ Location UBConnectivity::findProposal(){
         }
     }
     internals::PointLatLng prop = proj.FromPixelToLatLng(proposal.X(),proposal.Y(),GND_RES);
+    Tproposal.setLocation(prop.Lat(),prop.Lng());
     return Location(prop.Lat(),prop.Lng());
 }
 
-void UBConnectivity::adjustmentPhase() {
+void UBConnectivity::adjustmentPhase(int idx) {
+    QSet<int>::iterator i;
+    projections::MercatorProjection proj;
+    int flag=0;
+    core::Point proposal = proj.FromLatLngToPixel(Tproposal.lat,Tproposal.lon,GND_RES);
+    for (i = filter.begin(); i != filter.end(); ++i)
+    {
+        Location temp = proposals.value(*i);
+        core::Point temp1 = proj.FromLatLngToPixel(temp.lat,temp.lon,GND_RES);
+        if (normD(proposal,temp1)>COMM_RANGE){
+            flag=1;
+            break;
+        }
+    }
+    if(flag){
+        core::Point st = proj.FromLatLngToPixel(current.lat,current.lon,GND_RES);
+        proposal.SetX((proposal.X()+st.X())/2);
+        proposal.SetY((proposal.Y()+st.Y())/2);
+    }
+    internals::PointLatLng final = proj.FromPixelToLatLng(proposal.X(),proposal.Y(),GND_RES);
+
+    Waypoint wp;
+    wp.setFrame(MAV_FRAME_GLOBAL_RELATIVE_ALT);
+    wp.setLatitude(final.Lat());
+    wp.setLongitude(final.Lng());
+    wp.setAltitude(agent->m_uav->getAltitudeRelative());
+    this->agent->m_mission_data.wpm->addWaypointEditable(&wp);
+    int seq = this->agent->m_mission_data.wpm->getWaypointEditableList().size();
+    this->agent->m_mission_data.wpm->moveWaypoint(seq-1,idx);
+
 
 }

@@ -57,6 +57,7 @@ private:
 signals:
     void goToNextPoint(int idx);
     void proposalBegin(int idx);
+    void adjustmentBegin(int idx);
 protected slots:
     void armedEvent();
     void disarmedEvent();

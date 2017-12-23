@@ -33,7 +33,7 @@ UBAgent::UBAgent(QObject *parent) : QObject(parent),
     connect(this, SIGNAL(goToNextPoint(int)), m_connectivity,SLOT(collectionPhase(int)));
     connect(this,SIGNAL(proposalBegin(int)),m_connectivity,SLOT(proposalPhase(int)));
     //connect(worker, &Worker::resultReady, this, &Controller::handleResults);
-
+    connect(this,SIGNAL(adjustmentBegin(int)),m_connectivity,SLOT(adjustmentPhase(int)));
     connect(m_connectivity,SIGNAL(broadcastLocation(quint32,QByteArray)),m_net,SLOT(sendData(quint32,QByteArray))); // To broadcast location
     connect(m_net,SIGNAL(dataReady(quint32,QByteArray)), m_connectivity, SLOT(getNeighbors(quint32,QByteArray)),Qt::QueuedConnection);
     connectivityThread.start();
@@ -228,7 +228,6 @@ void UBAgent::stageMission() {
     static const Waypoint* temp;
     int idx = m_mission_data.wpm->getWaypointEditableList().size();
     static int nextPoint = 1;
-    static int wait = 0;
     static int nextPointFlag = 1;
     if(m_mission_data.stage<idx){
         if(nextPoint)
@@ -237,19 +236,24 @@ void UBAgent::stageMission() {
                 emit(goToNextPoint(m_mission_data.stage));
                 nextPointFlag = 0;
             }
-            if(wait<5){
-                wait++;
+            if(m_mission_data.tick<5){
+                m_mission_data.tick++;
                 return;
             }
             //QThread::currentThread()->msleep(10000);
             //QLOG_FATAL()<<"after sleep "<<m_uav->getUASID();
             emit(proposalBegin(m_mission_data.stage));
-            QThread::currentThread()->msleep(1500);
+            if(m_mission_data.tick<10){
+                m_mission_data.tick++;
+                return;
+            }
+            emit(adjustmentBegin(m_mission_data.stage));
+            QThread::currentThread()->msleep(1000);
             temp = m_mission_data.wpm->getWaypoint(m_mission_data.stage);
             setDestination(temp->getLatitude(),temp->getLongitude());
             nextPoint=0;
             nextPointFlag = 1;
-            wait = 0;
+            m_mission_data.tick = 0;
         }
         else{
             if(inPointZone(temp->getLatitude(),temp->getLongitude(),m_uav->getAltitudeRelative())){

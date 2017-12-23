@@ -21,7 +21,7 @@ public slots:
     void getNeighbors(quint32,QByteArray);
     void proposalPhase(int idx);
     void getProposals(quint32,QByteArray);
-    void adjustmentPhase();
+    void adjustmentPhase(int idx);
     Location findProposal();
 private:
 protected:
@@ -29,6 +29,7 @@ protected:
     UBAgent* agent;
     Location current;
     Location target;
+    Location Tproposal;
     QHash<quint32,Location> neighbors;
     QHash<quint32,Location> proposals;
     QSet<int> filter;
