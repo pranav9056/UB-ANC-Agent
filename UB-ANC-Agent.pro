@@ -35,7 +35,8 @@ HEADERS += \
     sensor/power/UBPower.h \
     network/UBConnectivity.h \
     agent/location.h \
-    network/graph.h
+    network/graph.h \
+    network/circle.h
 
 SOURCES += \
     agent/UBAgent.cpp \
@@ -46,4 +47,5 @@ SOURCES += \
     sensor/power/UBPower.cpp \
     network/UBConnectivity.cpp \
     agent/location.cpp \
-    network/graph.cpp
+    network/graph.cpp \
+    network/circle.cpp

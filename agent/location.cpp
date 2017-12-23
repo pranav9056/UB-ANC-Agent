@@ -33,7 +33,7 @@ double Location::distance(Location &a,Location &b){
     return v.length();
 }
 
-QByteArray Location::serialize(){
+QByteArray Location::serialize(QString pre){
     QByteArray data;
     if(this->lat<0){
         data = QByteArray::number(-1*this->lat);
@@ -62,7 +62,7 @@ QByteArray Location::serialize(){
     char *data4 = new char[data.size() + 1];
     strcpy(data4, data.data());
     //QLOG_INFO()<<"cccccccccccccc"<<data4;
-    data.prepend(QByteArray("B:L"));
+    data.prepend(pre.toUtf8());
     char *data1 = new char[data.size() + 1];
     strcpy(data1, data.data());
     //QLOG_INFO()<<"ddddddddddddddddddddd"<<data1;

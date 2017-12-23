@@ -11,7 +11,7 @@ public:
     Location();
     void setLocation(double lat, double lon);
     static double distance(Location &a,Location &b);
-    QByteArray serialize();
+    QByteArray serialize(QString pre);
     void deserialize(QByteArray);
 };
 

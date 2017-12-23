@@ -5,6 +5,7 @@
 #include "UBAgent.h"
 #include "location.h"
 #include <QHash>
+#include <QSet>
 class UBNetwork;
 class UBAgent;
 class UBConnectivity : public QObject
@@ -19,7 +20,9 @@ public slots:
     void collectionPhase(int idx);
     void getNeighbors(quint32,QByteArray);
     void proposalPhase(int idx);
+    void getProposals(quint32,QByteArray);
     void adjustmentPhase();
+    Location findProposal();
 private:
 protected:
     UBNetwork* m_net;
@@ -27,6 +30,8 @@ protected:
     Location current;
     Location target;
     QHash<quint32,Location> neighbors;
+    QHash<quint32,Location> proposals;
+    QSet<int> filter;
 };
 
 #endif // UBCONNECTIVITY_H
